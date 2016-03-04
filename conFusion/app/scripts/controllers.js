@@ -88,4 +88,20 @@ angular.module('confusionApp')
                 rating: 5
             };
         }
-    }]);
+    }])
+    .controller('IndexController', ['$scope', 'menuFactory', 'corporateFactory', function($scope, menuFactory, corporateFactory) {
+        var dish= menuFactory.getDish(0);
+        $scope.dish = dish;
+
+        var promotion = menuFactory.getPromotion(0);
+        $scope.promotion = promotion;
+
+        var chef = corporateFactory.getLeader(3);
+        $scope.chef = chef;
+    }])
+
+    .controller('AboutController', ['$scope', 'corporateFactory', function($scope, corporateFactory) {
+        var leaders = corporateFactory.getLeaders();
+        $scope.leaders = leaders;
+    }])
+;
