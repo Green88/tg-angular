@@ -6,9 +6,16 @@ angular.module('confusionApp')
         $scope.filtText = '';
         $scope.showDetails = false;
 
-        $scope.showMenu = true;
+        $scope.showMenu = false;
         $scope.message = "Loading ...";
-        $scope.dishes = menuFactory.getDishes().query();
+        menuFactory.getDishes().query(
+            function(response) {
+                $scope.dishes = response;
+                $scope.showMenu = true;
+            },
+            function(response) {
+                $scope.message = "Error: "+response.status + " " + response.statusText;
+            });
 
         $scope.select = function(setTab) {
             this.tab = setTab;
@@ -62,41 +69,50 @@ angular.module('confusionApp')
         };
     }])
     .controller('DishDetailController', ['$scope', '$stateParams', 'menuFactory', function($scope, $stateParams, menuFactory) {
-        $scope.showDish = true;
+        $scope.showDish = false;
         $scope.message="Loading ...";
-        $scope.dish = menuFactory.getDishes().get({id:parseInt($stateParams.id,10)});
+        $scope.dish = menuFactory.getDishes().get({id:parseInt($stateParams.id,10)})
+            .$promise.then(
+                function(response){
+                    $scope.dish = response;
+                    $scope.showDish = true;
+                },
+                function(response) {
+                    $scope.message = "Error: "+response.status + " " + response.statusText;
+                }
+            );
     }])
 
-    .controller('DishCommentController', ['$scope', function($scope) {
+    .controller('DishCommentController', ['$scope', 'menuFactory', function($scope,menuFactory) {
         // init model
         $scope.userComment = {
             date: new Date().toISOString(),
             rating: 5
         };
-        // handle submission
+
         $scope.submitComment = function () {
+            $scope.userComment.date = new Date().toISOString();
+            console.log($scope.userComment);
+            $scope.dish.comments.push($scope.userComment);
 
-            var submittedComment = {
-                rating: parseInt($scope.userComment.rating),
-                comment: $scope.userComment.comments,
-                author: $scope.userComment.name,
-                date: $scope.userComment.date
-            };
-
-            $scope.dish.comments.push(submittedComment);
-
-            //reinit form and model
+            menuFactory.getDishes().update({id:$scope.dish.id},$scope.dish);
             $scope.commentForm.$setPristine();
-            $scope.userComment = {
-                date: new Date().toISOString(),
-                rating: 5
-            };
-        }
+            $scope.userComment = {rating:5, comment:"", author:"", date:""};
+        };
     }])
     .controller('IndexController', ['$scope', 'menuFactory', 'corporateFactory', function($scope, menuFactory, corporateFactory) {
-        $scope.showDish = true;
+        $scope.showDish = false;
         $scope.message="Loading ...";
-        $scope.dish = menuFactory.getDishes().get({id:0});
+        $scope.dish = menuFactory.getDishes().get({id:0})
+            .$promise.then(
+                function(response){
+                    $scope.dish = response;
+                    $scope.showDish = true;
+                },
+                function(response) {
+                    $scope.message = "Error: "+response.status + " " + response.statusText;
+                }
+            );
 
         var promotion = menuFactory.getPromotion(0);
         $scope.promotion = promotion;
